@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estudios Sociales</title>
+    <style>
+        body {
+            font-family: 'Comic Sans MS', cursive;
+            text-align: center;
+            background-color: #fefdfd;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #card {
+            border: 2px solid #3498db;
+            border-radius: 10px;
+            padding: 20px;
+            width: 300px;
+            background-color: #0b0b0b;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            color: #8d1806;
+        }
+
+        #word {
+            font-size: 24px;
+            margin: 10px 0;
+            color: #e70f0f;
+        }
+
+        #options {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+            margin-top: 10px;
+        }
+
+        .option {
+            cursor: pointer;
+            padding: 10px 20px;
+            margin: 10px;
+            border: 2px solid #3498db;
+            border-radius: 5px;
+            background-color: #3498db;
+            color: #fff;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+
+        .option:hover {
+            background-color: #2980b9;
+        }
+
+        #feedback {
+            margin-top: 10px;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        button {
+            background-color: #f53a10;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #8d2506;
+        }
+    </style>
+</head>
+<body>
+    <div id="card">
+        <h2>Elige la respuesta correcta:</h2>
+        <p id="word"></p>
+        <div id="options"></div>
+        <p id="feedback"></p>
+        <button onclick="nextWord()">Siguiente</button>
+    </div>
+
+    <div id="incorrect-list" style="display: none;">
+        <h2>Respuestas Incorrectas</h2>
+        <ul id="incorrect-words"></ul>
+        <p id="summary"></p>
+        <button onclick="studyIncorrectWords()">Estudiar Respuestas Incorrectas</button>
+    </div>
+
+    <script>
+        var palabras = {
+            "Franklin Chang Díaz": "Astronauta",
+"Juan Rafael Mora Porras": "Presidente",
+"Emma Gamboa Alvarado": "Maestra",
+"Francisco Zúñiga Díaz": "Escritor de cuentos de humor",
+"Joaquín Gutiérrez Mangel": "Autor de Cocorí",
+"Sherman Isidro Guity Guity": "Deportista",
+"Miguel ángel Pérez": "'Lito' Pérez",
+"Jeremy Rivera Rivera": "Dirigente indígena",
+"Antonio Saldaña": "Cacique Bribri",
+"Jesús Bonilla Chavarría": "Compositor musical",
+"Enrique Baltodano Briceño": "Doctor Hospital Liberia",
+"Juan Santamaría": "Héroe nacional",
+            "Es una rica cultura que se celebra en Limón y Puntarenas":"Carnavales",
+"Expresa la actitud alegre de Costa Rica":"Carnavales",
+"Conocido en CR como el Carnaval de la Reina":"Carnaval de Puntarenas",
+"Reúne desfiles que recorren el Paseo de los Turistas":"Carnaval de Puntarenas",
+"Se lleva a cabo en meses de verano, de febrero a marzo":"Carnaval de Puntarenas",
+"Los visitantes ven pinturas, comparsas y mascaradas":"Carnaval de Puntarenas",
+"Se lleva a cabo en la ciudad de Puerto Limón":"Carnaval de Limón",
+"Ofrece actividades y espectáculos para todas las edades con colores vivos, deliciosa comida y animación musical":"Carnaval de Limón",
+"Son expresiones habladas con rima":"Bombas típicas",
+"Se refieren a aspectos de la vida cotidiana de manera humorística y son populares en Guanacaste":"Bombas típicas",
+"Son parte del folclore costarricense y de la identidad nacional":"Bombas típicas",
+"Es una fiesta muy popular en el país y se realiza todos los años en San José":"Festival de la Luz",
+"Es conocido por sus coloridos y alegres desfiles de carrozas gigantes, fiestas de disfraces, fuegos artificiales y música en vivo":"Festival de la Luz",
+"Se celebra en la temporada de diciembre en las fiestas de fin de año":"Festival de la Luz",
+"Protege a la niñez y adolescencia": "Patronato Nacional de la Infancia",
+"Promoción de la salud y prevención de la enfermedad": "Equipos Básicos de Atención Integral en Salud",
+"Servicio de comedores escolares para garantizar la alimentación nutritiva a los estudiantes": "Ministerio de Educación Pública",
+"Proporciona asistencia a la niñez, adolescencia y sus familias en riesgo social": "Patronato Nacional de la Infancia",
+"Salud preventiva: control prenatal, control del crecimiento del niño, etc": "Equipos Básicos de Atención Integral en Salud",
+"Programas de transporte estudiantil": "Ministerio de Educación Pública"
+        };
+
+        var incorrectAnswers = [];
+        var correctAnswers = 0;
+        var incorrectCount = 0;
+        var currentWord;
+        var correctTranslation;
+        var wordsToAsk;
+
+        function init() {
+            wordsToAsk = Object.keys(palabras);
+            nextWord();
+        }
+
+        function nextWord() {
+            if (wordsToAsk.length === 0) {
+                // Se han preguntado todas las palabras, mostrar el resumen
+                showSummary();
+                return;
+            }
+
+            currentWord = wordsToAsk.pop();
+            correctTranslation = palabras[currentWord];
+
+            document.getElementById('word').innerText = currentWord;
+            displayOptions();
+            document.getElementById('feedback').innerText = '';
+        }
+
+        function displayOptions() {
+            var optionsContainer = document.getElementById('options');
+            optionsContainer.innerHTML = '';
+
+            // Shuffle the options
+            var options = [correctTranslation];
+            while (options.length < 3) {
+                var randomWord = getRandomWord();
+                if (!options.includes(randomWord)) {
+                    options.push(randomWord);
+                }
+            }
+
+            options = shuffle(options);
+
+            // Display the options
+            for (var i = 0; i < options.length; i++) {
+                var optionElement = document.createElement('div');
+                optionElement.className = 'option';
+                optionElement.innerText = options[i];
+                optionElement.onclick = function() {
+                    checkAnswer(this.innerText);
+                };
+                optionsContainer.appendChild(optionElement);
+            }
+        }
+
+        function getRandomWord() {
+            var keys = Object.keys(palabras);
+            return palabras[keys[Math.floor(Math.random() * keys.length)]];
+        }
+
+        function shuffle(array) {
+            for (var i = array.length - 1; i > 0; i--) {
+                var j = Math.floor(Math.random() * (i + 1));
+                var temp = array[i];
+                array[i] = array[j];
+                array[j] = temp;
+            }
+            return array;
+        }
+
+        function checkAnswer(selectedTranslation) {
+            var feedbackElement = document.getElementById('feedback');
+            if (selectedTranslation === correctTranslation) {
+                feedbackElement.innerText = '¡Correcto!';
+                feedbackElement.style.color = 'green';
+                correctAnswers++;
+            } else {
+                feedbackElement.innerText = 'Incorrecto. La respuesta correcta es ' + correctTranslation + '.';
+                feedbackElement.style.color = 'red';
+                // Guardar respuesta incorrecta en la lista
+                incorrectAnswers.push({ palabra: currentWord, respuestaCorrecta: correctTranslation, respuestaUsuario: selectedTranslation });
+                incorrectCount++;
+            }
+
+            nextWord();
+        }
+
+        function showSummary() {
+            var incorrectWordsList = document.getElementById('incorrect-words');
+            incorrectWordsList.innerHTML = '';
+
+            // Mostrar las palabras incorrectas
+            for (var i = 0; i < incorrectAnswers.length; i++) {
+                var listItem = document.createElement('li');
+                listItem.innerText = incorrectAnswers[i].palabra + ' - Respuesta correcta: ' + incorrectAnswers[i].respuestaCorrecta +
+                                     ' - Tu respuesta: ' + incorrectAnswers[i].respuestaUsuario;
+                incorrectWordsList.appendChild(listItem);
+            }
+
+            // Mostrar el resumen
+            var summaryElement = document.getElementById('summary');
+            summaryElement.innerText = 'Respuestas Correctas: ' + correctAnswers + ' | Respuestas Incorrectas: ' + incorrectCount;
+
+            // Mostrar la lista de palabras incorrectas
+            document.getElementById('card').style.display = 'none';
+            document.getElementById('incorrect-list').style.display = 'block';
+        }
+
+        function studyIncorrectWords() {
+            // Restablecer la lista de palabras a estudiar
+            wordsToAsk = incorrectAnswers.map(function(item) {
+                return item.palabra;
+            });
+
+            // Ocultar la lista de palabras incorrectas y mostrar la sección principal del ejercicio
+            document.getElementById('card').style.display = 'block';
+            document.getElementById('incorrect-list').style.display = 'none';
+
+            // Reiniciar las variables para comenzar el estudio desde cero
+            incorrectAnswers = [];
+            correctAnswers = 0;
+            incorrectCount = 0;
+
+            // Iniciar la siguiente palabra
+            nextWord();
+        }
+
+        // Iniciar el ejercicio cuando se carga la página
+        window.onload = init;
+    </script>
+</body>
+</html>
