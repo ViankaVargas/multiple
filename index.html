@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ejercicio de Idiomas</title>
+    <title>Ejercicio</title>
     <style>
         body {
             font-family: 'Comic Sans MS', Arial, Helvetica, sans-serif;
@@ -99,8 +99,7 @@
 
     <script>
         var palabras = {
-            
- "1":"I",
+            "1":"I",
 "2":"II",
 "3":"III",
 "4":"IV",
@@ -207,23 +206,34 @@
         var incorrectCount = 0;
         var currentWord;
         var correctTranslation;
-        var wordsToAsk;
+        var questionsToAsk;
 
         function init() {
-            // Barajar las palabras
-            wordsToAsk = shuffle(Object.keys(palabras));
+            // Crear una lista de preguntas
+            questionsToAsk = createQuestionList(Object.keys(palabras));
             nextWord();
         }
 
+        function createQuestionList(words) {
+            // Crear una lista de preguntas combinando cada palabra con su traducción
+            var questions = [];
+            for (var i = 0; i < words.length; i++) {
+                questions.push({ palabra: words[i], traduccion: palabras[words[i]] });
+            }
+            // Barajar las preguntas
+            return shuffle(questions);
+        }
+
         function nextWord() {
-            if (wordsToAsk.length === 0) {
+            if (questionsToAsk.length === 0) {
                 // Se han preguntado todas las palabras, mostrar el resumen
                 showSummary();
                 return;
             }
 
-            currentWord = wordsToAsk.pop();
-            correctTranslation = palabras[currentWord];
+            var currentQuestion = questionsToAsk.pop();
+            currentWord = currentQuestion.palabra;
+            correctTranslation = currentQuestion.traduccion;
 
             document.getElementById('word').innerText = currentWord;
             displayOptions();
@@ -234,7 +244,7 @@
             var optionsContainer = document.getElementById('options');
             optionsContainer.innerHTML = '';
 
-            // Shuffle the options
+            // Barajar las opciones
             var options = [correctTranslation];
             while (options.length < 3) {
                 var randomWord = getRandomWord();
@@ -245,7 +255,7 @@
 
             options = shuffle(options);
 
-            // Display the options
+            // Mostrar las opciones
             for (var i = 0; i < options.length; i++) {
                 var optionElement = document.createElement('div');
                 optionElement.className = 'option';
@@ -311,9 +321,9 @@
         }
 
         function studyIncorrectWords() {
-            // Restablecer la lista de palabras a estudiar
-            wordsToAsk = shuffle(incorrectAnswers.map(function(item) {
-                return item.palabra;
+            // Restablecer la lista de preguntas a estudiar
+            questionsToAsk = shuffle(incorrectAnswers.map(function(item) {
+                return { palabra: item.palabra, traduccion: palabras[item.palabra] };
             }));
 
             // Ocultar la lista de palabras incorrectas y mostrar la sección principal del ejercicio
